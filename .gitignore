@@ -1,0 +1,12 @@
+# Python build artifacts
+__pycache__/
+*.pyc
+
+# LaTeX build artifacts (keep main.pdf)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
