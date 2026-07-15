@@ -44,7 +44,6 @@ _s1, _s2, _s3 = X0              # state scalars, written by core 1, read by core
 _u = 0.0                        # written by core 0, read by core 1
 _lock = _thread.allocate_lock()
 _go = False                     # plant holds X0 until the first u is published
-_t0 = utime.ticks_us()
 
 # ---- execution-time statistics (C5) ----
 _exec_sum = 0
@@ -82,19 +81,18 @@ def make_controller_tick(ctrl):
 
     def _tick(timer):
         global _u, _go, _exec_sum, _exec_max, _exec_cnt
+        k = box["k"]
+        ta = utime.ticks_us()
         with _lock:
             x = (_s1, _s2, _s3)
-        t = utime.ticks_diff(utime.ticks_us(), _t0) * 1e-6
-        ta = utime.ticks_us()
         if MODE == "rbf":
-            u = ctrl.update(x, t, PA.PICO_TS)
+            u = ctrl.update(x, k * PA.PICO_TS, PA.PICO_TS)   # logical time: no wraparound
         else:
             u = ctrl.control(x)
-        dt_us = utime.ticks_diff(utime.ticks_us(), ta)
         with _lock:
             _u = u
+        dt_us = utime.ticks_diff(utime.ticks_us(), ta)   # read + compute + publish (C5)
         _go = True
-        k = box["k"]
         if k % GC_EVERY == 0:
             gc.collect()      # deterministic collection, never mid-update
         box["k"] = k + 1
@@ -111,11 +109,13 @@ def main():
     utime.sleep_ms(50)                              # let core 1 start
     Timer(period=int(PA.PICO_TS * 1000), mode=Timer.PERIODIC,
           callback=make_controller_tick(ctrl))      # controller on core 0
-    # report loop
+    # report loop.  NOTE: no lock here -- the controller callback runs on THIS core
+    # at bytecode boundaries, so taking _lock in this loop could deadlock against a
+    # callback dispatched while the lock is held; a single stale float read is
+    # perfectly fine for a 1 Hz diagnostic print.
     while True:
         utime.sleep_ms(1000)
-        with _lock:
-            y = _s1
+        y = _s1
         avg = (_exec_sum / _exec_cnt) if _exec_cnt else 0
         print("MODE=%s  y=%.4f  u=%.3f  exec avg=%.1f us  max=%d us  (Ts=%d us)"
               % (MODE, y, _u, avg, _exec_max, int(PA.PICO_TS * 1e6)))

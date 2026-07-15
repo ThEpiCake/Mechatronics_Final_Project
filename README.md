@@ -7,13 +7,13 @@ programming (ADP), with real-time implementation on the Raspberry Pi Pico.
 | | |
 |---|---|
 | **Authors** | Roee Zehavi (209146216), Etay Baron (209438910) |
-| **Report** | [`Final_Project_Report.pdf`](Final_Project_Report.pdf) (31 pp., English) |
+| **Report** | [`Final_Project_Report.pdf`](Final_Project_Report.pdf) (35 pp., English) |
 | **Hardware** | Raspberry Pi Pico (RP2040) @ 200 MHz, MicroPython v1.24.0 + ulab 6.12 |
 
 Two model-free controllers are developed for **one** nonlinear process — a Duffing
 mass-spring-damper driven through a first-order force actuator (reused, with re-tuned
 parameters, from HW1) — and both are implemented **and measured on the physical Pico**,
-with the process simulated in real time on the second core.
+with the process simulated in real time on the secondary core.
 
 ## Key measured results (on chip)
 
@@ -31,7 +31,7 @@ with the process simulated in real time on the second core.
 
 ```
 .
-├── Final_Project_Report.pdf   the full report
+├── Final_Project_Report.pdf   the full report (35 pp.)
 ├── Py_Code/                Parts 1–3 (desktop, Python: NumPy/SciPy/Matplotlib)
 │   ├── plant.py            shared control-affine model  x' = f(x) + g u
 │   ├── config.py           all design parameters (single source of truth)
@@ -43,13 +43,14 @@ with the process simulated in real time on the second core.
 │   ├── images/  (generated figures)   data/  (generated adp_policy.npz)
 └── Pico_Code/              Part 4 (MicroPython + ulab)
     ├── params.py           frozen constants (auto-generated)
-    ├── plant_core1.py      second core: scalar RK4 plant step (paced loop @ dt)
+    ├── plant_core1.py      secondary core: scalar RK4 step (paced loop @ dt)
     ├── pico_control.py     main core: RBFController (C3) + ADPController (C4)
     ├── main.py             two-core orchestration (live demo)          [runs on Pico]
     ├── pico_experiment.py  bounded, logged hardware experiment -> CSV  [runs on Pico]
     ├── plot_hw_results.py  on-chip CSV -> report hardware figures (desktop)
     ├── make_arch_figure.py architecture block diagram (desktop)
-    └── desktop_sim.py      off-board validation of the two-core scheme + timing
+    ├── desktop_sim.py      off-board validation of the two-core scheme + timing
+    └── board_backup/       files found on the course board before flashing
 ```
 
 ## Reproduce the results
@@ -92,14 +93,14 @@ python3 plot_hw_results.py     # -> images/part4/pico_hw_*.png + all Section-5 n
 The controller must finish each update below `Ts = 10 ms`; measured on chip (200 MHz):
 RBF avg/max 2.92/2.99 ms, ADP 0.56/0.61 ms.
 
-## Report section ↔ grading map
+## Report section ↔ assignment map
 
-| Report | Code | Grading |
+| Report | Code | Work items |
 |--------|------|---------|
-| §2 Process model & analysis   | `plant.py`, `part1_analysis.py`        | M1–M4 |
+| §2 Process model & analysis   | `plant.py`, `part1_analysis.py`        | 1.1–1.7 |
 | §3 Adaptive RBF-NN tracking   | `rbf_adaptive.py`, `rbf_discrete.py`   | A1–A5 |
 | §4 Off-policy ADP             | `adp_offpolicy.py`                     | B1–B8 |
-| §5 Raspberry Pi Pico          | `Pico_Code/*`, `desktop_sim.py`        | P1–P5 |
+| §5 Raspberry Pi Pico          | `Pico_Code/*`, `desktop_sim.py`        | C1–C5 |
 
 ## Note on the process parameters
 

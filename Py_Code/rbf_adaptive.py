@@ -15,13 +15,14 @@ with Lambda the Hurwitz companion matrix of the desired error poles (config.ERR_
 
 Lyapunov design.  With P = P^T > 0 solving  Lambda^T P + P Lambda = -Q  and
     V = xi^T P xi + (1/gamma) Wtil^T Wtil ,   Wtil = What - W* ,
-the weight-adaptation law (sigma-modification for robustness to the RBF error eps)
-    What' = -gamma ( b^T P xi ) phi(x) - gamma sigma What
-gives   V' = -xi^T Q xi - 2 (b^T P xi) eps - 2 sigma Wtil^T What  <= UUB,
-i.e. the tracking error and the weights are uniformly ultimately bounded, and the
-tracking error is driven to a small neighbourhood of zero set by the RBF error and
-sigma.  The nominal controller (A1) replaces What^T phi by the true D(x) and yields
-the exact linear error dynamics xi' = Lambda xi.
+the weight-adaptation law is the Lyapunov gradient law with PROJECTION,
+    What' = Proj( -gamma ( b^T P xi ) phi(x) ),   |w_i| <= W_MAX,
+which gives  V' <= -xi^T Q xi - 2 (b^T P xi) eps,  i.e. the tracking error and the
+weights are uniformly ultimately bounded, with the residual set fixed by the RBF
+approximation error eps.  (weight_dot also supports sigma-modification as an
+alternative robustness term; the design in the report uses projection only,
+config.SIGMA_MOD = 0.)  The nominal controller (A1) replaces What^T phi by the true
+D(x) and yields the exact linear error dynamics xi' = Lambda xi.
 """
 
 import os
@@ -159,6 +160,31 @@ def make_figures(da, dn, outdir="images/part2"):
     ax.set_title(r"RBF weight norm $\|\widehat{W}(t)\|$ (bounded)")
     ax.set_xlabel("t [s]"); ax.set_ylabel(r"$\|\widehat{W}\|$"); ax.grid(alpha=.3)
     fig.tight_layout(); fig.savefig(f"{outdir}/weights.png", dpi=140); plt.close()
+
+    # full state histories x2, x3 (x1 = y is the tracking figure) -- A5
+    fig, ax = plt.subplots(2, 1, figsize=(9, 5.6), sharex=True)
+    ydd = np.gradient(da["yd"], da["t"])           # y_d' for visual reference
+    ax[0].plot(da["t"], da["x"][1], "b-", lw=1.1, label="adaptive")
+    ax[0].plot(dn["t"], dn["x"][1], "r:", lw=1.1, label="nominal")
+    ax[0].plot(da["t"], ydd, "k--", lw=1.0, label=r"$\dot y_d$")
+    ax[0].set_ylabel(r"$x_2=\dot y$ [m/s]"); ax[0].legend(loc="upper right"); ax[0].grid(alpha=.3)
+    ax[1].plot(da["t"], da["x"][2], "b-", lw=1.1, label="adaptive")
+    ax[1].plot(dn["t"], dn["x"][2], "r:", lw=1.1, label="nominal")
+    ax[1].set_ylabel(r"$x_3=\ddot y$ [m/s$^2$]"); ax[1].set_xlabel("t [s]")
+    ax[1].legend(loc="upper right"); ax[1].grid(alpha=.3)
+    fig.suptitle("State histories under the nominal and adaptive controllers")
+    fig.tight_layout(); fig.savefig(f"{outdir}/states.png", dpi=140); plt.close()
+
+    # representative individual weight estimates -- A5
+    fig, ax = plt.subplots(figsize=(9, 4))
+    Wh = da["W"]
+    idx = np.argsort(np.abs(Wh[:, -1]))[-6:][::-1]     # 6 largest final |w_i|
+    for i in idx:
+        ax.plot(da["t"], Wh[i], lw=1.1, label=rf"$\widehat w_{{{i+1}}}$")
+    ax.set_title("Representative RBF weight estimates (6 largest at $t=T$)")
+    ax.set_xlabel("t [s]"); ax.set_ylabel(r"$\widehat w_i$"); ax.legend(ncol=3, fontsize=9)
+    ax.grid(alpha=.3)
+    fig.tight_layout(); fig.savefig(f"{outdir}/weights_traces.png", dpi=140); plt.close()
 
 
 if __name__ == "__main__":

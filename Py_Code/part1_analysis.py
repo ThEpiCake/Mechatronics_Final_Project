@@ -45,16 +45,16 @@ def fig_nonlinear_vs_linear():
     T = 6.0
     cases = [("small", 0.15), ("large", 0.7)]    # release from rest y(0)=y0
     devs = {}
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.2))
+    fig, axes = plt.subplots(2, 1, figsize=(7.2, 6.4), sharex=True)
     for ax, (name, y0) in zip(axes, cases):
         t, xn = free_response([y0, 0, 0], T, linear=False)
         _, xl = free_response([y0, 0, 0], T, linear=True)
         ax.plot(t, xn[0], "b-", lw=1.8, label="nonlinear")
         ax.plot(t, xl[0], "r--", lw=1.6, label="linearization")
         ax.set_title(f"{name} amplitude: $y(0)={y0}$ m")
-        ax.set_xlabel("t [s]"); ax.set_ylabel("y [m]"); ax.legend(); ax.grid(alpha=.3)
+        ax.set_ylabel("y [m]"); ax.legend(); ax.grid(alpha=.3)
         devs[name] = np.max(np.abs(xn[0] - xl[0]))
-    fig.suptitle("Zero-input free response: nonlinear model vs local linearization")
+    axes[1].set_xlabel("t [s]")
     fig.tight_layout(); fig.savefig(f"{OUT}/free_response.png", dpi=140); plt.close()
 
     # phase portrait for the large case
@@ -106,10 +106,10 @@ def fig_V_decreasing():
     t, x = free_response([0.7, 1.0, 0.0], T, linear=False)
     V = np.array([P.lyapunov_V(x[:, i], gamma) for i in range(x.shape[1])])
     Vd = np.array([P.lyapunov_Vdot(x[:, i], gamma) for i in range(x.shape[1])])
-    fig, ax = plt.subplots(1, 2, figsize=(12, 4.2))
+    fig, ax = plt.subplots(2, 1, figsize=(6.6, 6.4), sharex=True)
     ax[0].semilogy(t, V + 1e-18, "b-", lw=1.8)
     ax[0].set_title(r"Lyapunov function $V(t)$ (log scale)")
-    ax[0].set_xlabel("t [s]"); ax[0].set_ylabel("V"); ax[0].grid(alpha=.3, which="both")
+    ax[0].set_ylabel("V"); ax[0].grid(alpha=.3, which="both")
     ax[1].plot(t, Vd, "r-", lw=1.8); ax[1].axhline(0, color="k", lw=.8)
     ax[1].set_title(r"$\dot V(t) \leq 0$ along the trajectory")
     ax[1].set_xlabel("t [s]"); ax[1].set_ylabel(r"$\dot V$"); ax[1].grid(alpha=.3)

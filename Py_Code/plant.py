@@ -59,14 +59,14 @@ tau, ka = 0.2, 1.0              # actuator time constant [s], actuator gain [N/V
 k3 = 40.0                       # cubic (Duffing) stiffness [N/m^3]
 
 # ----- derived linear jerk coefficients -------------------------------------
-a1 = c1 / m + 1.0 / tau                 # 24
-a2 = k1 / m + c1 / (tau * m)            # 100
-a3 = k1 / (tau * m)                     # 400   (!= 0  -> unique equilibrium at origin)
-c = ka / (tau * m)                      # 20    (input gain: g = [0,0,c])
+a1 = c1 / m + 1.0 / tau                 # 6
+a2 = k1 / m + c1 / (tau * m)            # 25
+a3 = k1 / (tau * m)                     # 100   (!= 0  -> unique equilibrium at origin)
+c = ka / (tau * m)                      # 5     (input gain: g = [0,0,c])
 
 # ----- derived nonlinear jerk coefficients ----------------------------------
-b1 = k3 / (tau * m)             # 100   coefficient of y^3
-b2 = 3.0 * k3 / m               # 15    coefficient of y^2 y'  (cross term)
+b1 = k3 / (tau * m)             # 200   coefficient of y^3
+b2 = 3.0 * k3 / m               # 120   coefficient of y^2 y'  (cross term)
 
 # constant input vector g(x) = g  (control-affine, g known to the controller)
 G = np.array([0.0, 0.0, c])

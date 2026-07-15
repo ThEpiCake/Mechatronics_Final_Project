@@ -167,6 +167,7 @@ if __name__ == "__main__":
           f"(box {C.X_BOX[:,1]}), |u|max={np.max(np.abs(U)):.1f}")
 
     w, hist = policy_iteration(X, U, dt)
+    print(f"stopping criterion ||w_i+1 - w_i|| < {C.ADP_TOL} met after {len(hist['w'])} iterations")
     Pfin = P_matrix(w)
     print(f"learned quadratic P=\n{np.round(Pfin,3)}")
     print(f"eig(P) = {np.round(np.linalg.eigvalsh(Pfin),4)}  (all>0 => locally PD)")
@@ -194,38 +195,53 @@ if __name__ == "__main__":
 
     # data-collection state stays in the operating box
     fig, ax = plt.subplots(figsize=(9, 3.6))
-    for i, lab in enumerate([r"$y$", r"$\dot y$", r"$\ddot y$"]):
+    for i, lab in enumerate([r"$y$ [m]", r"$\dot y$ [m/s]", r"$\ddot y$ [m/s$^2$]"]):
         ax.plot(t, X[:, i], lw=0.7, label=lab)
-    ax.set_title("Off-policy data collection: states remain bounded (exciting input)")
-    ax.set_xlabel("t [s]"); ax.set_ylabel("state"); ax.legend(ncol=3); ax.grid(alpha=.3)
+    ax.set_title(f"Off-policy data collection (first 6 s of the {t[-1]:.0f} s record)")
+    ax.set_xlabel("t [s]"); ax.set_ylabel("state (per-signal units)")
+    ax.legend(ncol=3); ax.grid(alpha=.3)
     ax.set_xlim(0, min(6, t[-1]))
     fig.tight_layout(); fig.savefig(f"{OUT}/data.png", dpi=140); plt.close()
 
-    # policy-iteration convergence: P eigenvalues + weight increments
+    # policy-iteration convergence: P eigenvalues, residual, coefficient evolution
     Peig = np.array(hist["P_eig"]); res = np.array(hist["res"])
-    fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+    Wev = np.array(hist["w"])                      # (iterations, 12)
+    it = np.arange(1, len(Wev) + 1)
+    fig, ax = plt.subplots(1, 3, figsize=(15, 4))
     for i in range(3):
-        ax[0].plot(range(len(Peig)), Peig[:, i], "o-", lw=1.4, label=f"$\\lambda_{i+1}(P)$")
+        ax[0].plot(it, Peig[:, i], "o-", lw=1.4, label=f"$\\lambda_{i+1}(P)$")
     ax[0].axhline(0, color="k", lw=.7)
-    ax[0].set_title("Eigenvalues of $P_i$ over policy iterations (stay $>0$)")
+    ax[0].set_title("Eigenvalues of $P_i$ (stay $>0$)")
     ax[0].set_xlabel("iteration"); ax[0].set_ylabel("eig($P_i$)"); ax[0].legend(); ax[0].grid(alpha=.3)
-    ax[1].semilogy(range(len(res)), res + 1e-18, "s-", color="purple", lw=1.4)
-    ax[1].set_title("Off-policy least-squares residual per iteration")
+    ax[1].semilogy(it, res + 1e-18, "s-", color="purple", lw=1.4)
+    ax[1].set_title("Off-policy least-squares residual")
     ax[1].set_xlabel("iteration"); ax[1].set_ylabel("residual RMS"); ax[1].grid(alpha=.3, which="both")
+    for i in range(Wev.shape[1]):
+        ax[2].plot(it, Wev[:, i], "o-", lw=1.0, ms=3)
+    ax[2].set_title(f"Value-function coefficients $w_i$ ({Wev.shape[1]} traces)")
+    ax[2].set_xlabel("iteration"); ax[2].set_ylabel("$w_i$"); ax[2].grid(alpha=.3)
     fig.tight_layout(); fig.savefig(f"{OUT}/convergence.png", dpi=140); plt.close()
 
-    # learned vs initial policy from one IC
-    x0 = [0.7, 0.5, -1.0]
-    tl, Xl, Ul, _ = rollout(x0, w, use_policy=True)
-    t0, X0, U0, _ = rollout(x0, w, use_policy=False)
-    fig, ax = plt.subplots(1, 2, figsize=(12, 4.2))
-    ax[0].plot(tl, Xl[:, 0], "b-", lw=1.6, label="learned policy")
-    ax[0].plot(t0, X0[:, 0], "r--", lw=1.4, label=r"initial $u_0=0$")
-    ax[0].set_title(f"Regulation of $y$ from $x_0={x0}$")
-    ax[0].set_xlabel("t [s]"); ax[0].set_ylabel("y [m]"); ax[0].legend(); ax[0].grid(alpha=.3)
-    ax[1].plot(tl, Ul, "b-", lw=1.4, label="learned $u$")
-    ax[1].set_title("Optimal control input"); ax[1].set_xlabel("t [s]"); ax[1].set_ylabel("u [V]")
-    ax[1].legend(); ax[1].grid(alpha=.3)
+    # B7: learned vs initial policy from several ICs -- ALL states + input
+    sel = [0, 1, 3]                                # IC1, IC2, IC4 (IC4 = the Part-4 demo IC)
+    cols = ["tab:blue", "tab:green", "tab:red"]
+    fig, ax = plt.subplots(4, 1, figsize=(10, 10.5), sharex=True)
+    labs = [r"$x_1=y$ [m]", r"$x_2=\dot y$ [m/s]", r"$x_3=\ddot y$ [m/s$^2$]"]
+    for c, j in zip(cols, sel):
+        tl, Xl, Ul, _ = rollout(ics[j], w, use_policy=True)
+        t0, X0r, _, _ = rollout(ics[j], w, use_policy=False)
+        for i in range(3):
+            ax[i].plot(tl, Xl[:, i], color=c, lw=1.3,
+                       label=f"IC{j+1} learned" if i == 0 else None)
+            ax[i].plot(t0, X0r[:, i], color=c, lw=1.0, ls=":", alpha=.75,
+                       label=f"IC{j+1} initial $u_0=0$" if i == 0 else None)
+        ax[3].plot(tl, Ul, color=c, lw=1.2, label=f"IC{j+1}")
+    for i in range(3):
+        ax[i].set_ylabel(labs[i]); ax[i].grid(alpha=.3)
+    ax[0].legend(ncol=3, fontsize=9)
+    ax[3].set_ylabel("u [V]"); ax[3].set_xlabel("t [s]"); ax[3].grid(alpha=.3)
+    ax[3].legend(ncol=3, fontsize=9, title="learned policy")
+    fig.suptitle("Learned vs initial policy: all state variables and the control input")
     fig.tight_layout(); fig.savefig(f"{OUT}/regulation.png", dpi=140); plt.close()
 
     # cost comparison bar

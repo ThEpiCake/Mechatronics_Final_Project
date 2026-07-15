@@ -85,7 +85,8 @@ class RBFController:
     def features(self, x):
         """Normalized Gaussian RBF vector phi(x) (vectorised ulab op)."""
         g = self._gauss(x)
-        return g / np.sum(g)
+        s = np.sum(g)
+        return g / s if s > 1e-12 else g   # underflow guard, same as the desktop
 
     def update(self, x, t, dt):
         """One controller update: read state x at time t, return u; adapt weights.
@@ -96,7 +97,10 @@ class RBFController:
         yd, yd1, yd2, yd3 = y_ref(t)
         e = x[0] - yd; ed = x[1] - yd1; edd = x[2] - yd2
         g = self._gauss(x)
-        isg = 1.0 / np.sum(g)
+        s = np.sum(g)
+        # underflow guard (matches the desktop rbf_phi): far outside the center
+        # box the float32 sum can reach 0, and dividing would give NaN weights
+        isg = 1.0 / s if s > 1e-12 else 0.0
         Dhat = np.dot(self.W, g) * isg
         u = _sat((Dhat + yd3 - self.l2 * edd - self.l1 * ed - self.l0 * e) / PA.C_IN, PA.U_MAX)
         # Lyapunov gradient weight update + projection (forward Euler, in place)

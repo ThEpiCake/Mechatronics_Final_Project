@@ -116,9 +116,9 @@ def run(mode="rbf", T=20.0):
             u = ctrl.update(x, k * Ts, Ts)
         else:
             u = ctrl.control(x)
-        te = utime.ticks_diff(utime.ticks_us(), ta)
         with _lock:
             _u = u
+        te = utime.ticks_diff(utime.ticks_us(), ta)   # read + compute + publish (C5)
         _go = True                 # release the plant on the first published u
         y_log[k] = x[0]
         u_log[k] = u

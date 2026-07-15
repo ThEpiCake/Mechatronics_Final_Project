@@ -108,12 +108,13 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(figsize=(8, 4.5))
     for fs in rates:
         r = ss_rms(results[fs])
+        bad = (not np.isfinite(r)) or r > 0.05          # degraded / diverged
         ax.semilogy(1000 / fs, r if np.isfinite(r) else 1.0,
-                    "rx" if not np.isfinite(r) else "bo", ms=9, mew=2)
+                    "rx" if bad else "bo", ms=9, mew=2)
     ax.axhline(ss_rms(dict(t=dc["t"], e=dc["e"], diverged=False)), color="g", ls="--",
                label="continuous ss-RMS")
     ax.set_title("Discrete emulation: steady RMS tracking error vs sample period\n"
-                 "(blue = stable, red x = diverges)")
+                 "(blue = matches the continuous design, red x = degrades/diverges)")
     ax.set_xlabel(r"$T_s$ [ms]"); ax.set_ylabel("ss-RMS |e| [m]")
     ax.legend(); ax.grid(alpha=.3, which="both")
     fig.tight_layout(); fig.savefig("images/part2/discrete_rms.png", dpi=140); plt.close()
