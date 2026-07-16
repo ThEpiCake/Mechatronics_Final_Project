@@ -20,9 +20,9 @@ with the process simulated in real time on the secondary core.
 | Quantity | On chip | Computer reference |
 |---|---|---|
 | RBF steady-state RMS tracking error | **9.96×10⁻³ m** | 9.98×10⁻³ m (two-core emulation) |
-| ADP response vs. fine desktop rollout | within **1.6×10⁻³ m** | — |
-| RBF controller update (avg / max) | **2.92 / 2.99 ms** | 19 µs (NumPy proxy) |
-| ADP controller update (avg / max) | **0.56 / 0.61 ms** | 2.4 µs (NumPy proxy) |
+| ADP response vs. fine desktop rollout | **≈1.6×10⁻³ m** at worst | — |
+| RBF controller update (avg / max) | **2.92 / 2.99 ms** | ≈17 µs (NumPy proxy) |
+| ADP controller update (avg / max) | **0.56 / 0.61 ms** | ≈3 µs (NumPy proxy) |
 | Real-time constraint (Ts = 10 ms) | **met, ≈3× margin** (worst tick incl. GC: 8.4 ms) | |
 
 ![On-chip RBF tracking](Py_Code/images/part4/pico_hw_rbf.png)
@@ -49,8 +49,7 @@ with the process simulated in real time on the secondary core.
     ├── pico_experiment.py  bounded, logged hardware experiment -> CSV  [runs on Pico]
     ├── plot_hw_results.py  on-chip CSV -> report hardware figures (desktop)
     ├── make_arch_figure.py architecture block diagram (desktop)
-    ├── desktop_sim.py      off-board validation of the two-core scheme + timing
-    └── board_backup/       files found on the course board before flashing
+    └── desktop_sim.py      off-board validation of the two-core scheme + timing
 ```
 
 ## Reproduce the results

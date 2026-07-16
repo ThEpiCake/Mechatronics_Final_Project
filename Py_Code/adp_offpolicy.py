@@ -128,6 +128,9 @@ def policy_iteration(X, U, dt, verbose=True):
         # regressor A_j and target b_j for this iteration (reuse same data)
         A = dPhi - win_trapz(Z * (U - u_cur)[:, None])          # (n_win, N_W)
         b = -win_trapz(xQx + R * u_cur ** 2)                    # (n_win,)
+        if k == 0 and verbose:
+            print(f"  LS regressor: {A.shape[0]}x{A.shape[1]}, rank {np.linalg.matrix_rank(A)}, "
+                  f"cond {np.linalg.cond(A):.2e}")
         w_new, *_ = np.linalg.lstsq(A, b, rcond=None)
         res = np.linalg.norm(A @ w_new - b) / np.sqrt(n_win)
         delta = np.linalg.norm(w_new - w)
@@ -203,11 +206,14 @@ if __name__ == "__main__":
     ax.set_xlim(0, min(6, t[-1]))
     fig.tight_layout(); fig.savefig(f"{OUT}/data.png", dpi=140); plt.close()
 
-    # policy-iteration convergence: P eigenvalues, residual, coefficient evolution
+    # policy-iteration convergence: P eigenvalues, residual, coefficients, cost
     Peig = np.array(hist["P_eig"]); res = np.array(hist["res"])
     Wev = np.array(hist["w"])                      # (iterations, 12)
     it = np.arange(1, len(Wev) + 1)
-    fig, ax = plt.subplots(1, 3, figsize=(15, 4))
+    Jit = {}                                       # J_T of each intermediate policy
+    for j in (0, 3):                               # IC1 and IC4
+        Jit[j] = [rollout(ics[j], np.asarray(wi), use_policy=True)[3] for wi in hist["w"]]
+    fig, ax = plt.subplots(1, 4, figsize=(17, 3.8))
     for i in range(3):
         ax[0].plot(it, Peig[:, i], "o-", lw=1.4, label=f"$\\lambda_{i+1}(P)$")
     ax[0].axhline(0, color="k", lw=.7)
@@ -220,7 +226,12 @@ if __name__ == "__main__":
         ax[2].plot(it, Wev[:, i], "o-", lw=1.0, ms=3)
     ax[2].set_title(f"Value-function coefficients $w_i$ ({Wev.shape[1]} traces)")
     ax[2].set_xlabel("iteration"); ax[2].set_ylabel("$w_i$"); ax[2].grid(alpha=.3)
+    ax[3].plot(it, Jit[0], "o-", color="tab:blue", lw=1.4, label="IC1")
+    ax[3].plot(it, Jit[3], "s-", color="tab:red", lw=1.4, label="IC4")
+    ax[3].set_title("Cost $J_T$ of the intermediate policies")
+    ax[3].set_xlabel("iteration"); ax[3].set_ylabel("$J_T$"); ax[3].legend(); ax[3].grid(alpha=.3)
     fig.tight_layout(); fig.savefig(f"{OUT}/convergence.png", dpi=140); plt.close()
+    print("J_T per iteration (IC1):", np.round(Jit[0], 2))
 
     # B7: learned vs initial policy from several ICs -- ALL states + input
     sel = [0, 1, 3]                                # IC1, IC2, IC4 (IC4 = the Part-4 demo IC)

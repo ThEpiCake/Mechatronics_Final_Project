@@ -22,7 +22,7 @@ timing histogram from real on-chip data.
 
 Usage from the host:
 
-    mpremote exec "import pico_experiment; pico_experiment.run('rbf', 20.0)"
+    mpremote exec "import pico_experiment; pico_experiment.run('rbf', 30.0)"
     mpremote exec "import pico_experiment; pico_experiment.run('adp',  8.0)"
 
 Each call shuts the timer down and releases the second core, so both runs can be

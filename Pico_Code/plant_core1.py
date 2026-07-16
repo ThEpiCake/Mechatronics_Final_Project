@@ -1,6 +1,6 @@
 """
 Secondary-core (core 1) task: real-time simulation of the continuous nonlinear
-process.  One RK4 integration step is performed per hardware-timer tick (period dt),
+process.  One RK4 integration step is performed per paced-loop step (period dt),
 with the controller's input u held constant between controller updates (ZOH).
 
 f(x) is evaluated HERE only -- it never appears in the controller code, honouring

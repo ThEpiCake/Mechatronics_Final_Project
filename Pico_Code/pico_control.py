@@ -69,8 +69,8 @@ class RBFController:
         grid: exp(-(d0^2+d1^2+d2^2)) over the 6x6x6 Cartesian product equals the
         outer product of three per-axis 6-element Gaussians.  All exp() calls act
         on grid-length vectors; only two broadcast multiplications touch the full
-        216-element vector -- on the RP2040 this cuts the update from ~6 ms to
-        ~2.5 ms.  The (g0*g1)*g2 broadcast order reproduces the 'ij' ravel order
+        216-element vector -- on the RP2040 @ 200 MHz this brings the full RBF
+        update to the measured ~2.9 ms.  The (g0*g1)*g2 broadcast order reproduces the 'ij' ravel order
         of the flat center list, so W indexing is unchanged."""
         d0 = x[0] * self.m0 - self.A0
         d1 = x[1] * self.m1 - self.A1

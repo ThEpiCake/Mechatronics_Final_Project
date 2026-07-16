@@ -151,7 +151,7 @@ def make_figures(da, dn, outdir="images/part2"):
     ax.plot(da["t"], da["Dtrue"], "k-", lw=1.6, label=r"true drift $D(x)$")
     ax.plot(da["t"], da["Dhat"], "b--", lw=1.3, label=r"RBF estimate $\widehat{D}(x)=\widehat{W}^\top\phi$")
     ax.set_title("Online RBF approximation of the unknown drift")
-    ax.set_xlabel("t [s]"); ax.set_ylabel("drift"); ax.legend(); ax.grid(alpha=.3)
+    ax.set_xlabel("t [s]"); ax.set_ylabel(r"drift $D$ [m/s$^3$]"); ax.legend(); ax.grid(alpha=.3)
     fig.tight_layout(); fig.savefig(f"{outdir}/rbf_drift.png", dpi=140); plt.close()
 
     # weight norm
