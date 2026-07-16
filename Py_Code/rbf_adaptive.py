@@ -167,7 +167,8 @@ def make_figures(da, dn, outdir="images/part2"):
     ax[0].plot(da["t"], da["x"][1], "b-", lw=1.1, label="adaptive")
     ax[0].plot(dn["t"], dn["x"][1], "r:", lw=1.1, label="nominal")
     ax[0].plot(da["t"], ydd, "k--", lw=1.0, label=r"$\dot y_d$")
-    ax[0].set_ylabel(r"$x_2=\dot y$ [m/s]"); ax[0].legend(loc="upper right"); ax[0].grid(alpha=.3)
+    ax[0].set_ylim(-1.12, 1.5)                     # headroom so the legend clears the data
+    ax[0].set_ylabel(r"$x_2=\dot y$ [m/s]"); ax[0].legend(loc="upper right", ncol=3); ax[0].grid(alpha=.3)
     ax[1].plot(da["t"], da["x"][2], "b-", lw=1.1, label="adaptive")
     ax[1].plot(dn["t"], dn["x"][2], "r:", lw=1.1, label="nominal")
     ax[1].set_ylabel(r"$x_3=\ddot y$ [m/s$^2$]"); ax[1].set_xlabel("t [s]")

@@ -24,6 +24,8 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.ticker import ScalarFormatter
 
 import plant as P
 import config as C
@@ -111,11 +113,17 @@ if __name__ == "__main__":
         bad = (not np.isfinite(r)) or r > 0.05          # degraded / diverged
         ax.semilogy(1000 / fs, r if np.isfinite(r) else 1.0,
                     "rx" if bad else "bo", ms=9, mew=2)
-    ax.axhline(ss_rms(dict(t=dc["t"], e=dc["e"], diverged=False)), color="g", ls="--",
-               label="continuous ss-RMS")
-    ax.set_title("Discrete emulation: steady RMS tracking error vs sample period\n"
-                 "(blue = matches the continuous design, red x = degrades/diverges)")
+    ax.axhline(ss_rms(dict(t=dc["t"], e=dc["e"], diverged=False)), color="g", ls="--")
+    ax.set_xscale("log")
+    ax.xaxis.set_major_formatter(ScalarFormatter())
+    ax.set_title("Discrete emulation: steady RMS tracking error vs sample period")
     ax.set_xlabel(r"$T_s$ [ms]"); ax.set_ylabel("ss-RMS |e| [m]")
-    ax.legend(); ax.grid(alpha=.3, which="both")
+    handles = [Line2D([], [], color="b", marker="o", ls="", ms=9, mew=2,
+                      label="matches the continuous design"),
+               Line2D([], [], color="r", marker="x", ls="", ms=9, mew=2,
+                      label="degrades/diverges"),
+               Line2D([], [], color="g", ls="--", label="continuous ss-RMS")]
+    ax.legend(handles=handles)
+    ax.grid(alpha=.3, which="both")
     fig.tight_layout(); fig.savefig("images/part2/discrete_rms.png", dpi=140); plt.close()
     print("saved discrete figures -> images/part2/")

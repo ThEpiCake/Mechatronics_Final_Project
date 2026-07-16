@@ -1,4 +1,4 @@
-"""
+r"""
 Branch B -- nonlinear OFF-POLICY adaptive dynamic programming (report Section 4,
 grading B1-B8).
 
@@ -228,8 +228,11 @@ if __name__ == "__main__":
     ax[2].set_xlabel("iteration"); ax[2].set_ylabel("$w_i$"); ax[2].grid(alpha=.3)
     ax[3].plot(it, Jit[0], "o-", color="tab:blue", lw=1.4, label="IC1")
     ax[3].plot(it, Jit[3], "s-", color="tab:red", lw=1.4, label="IC4")
+    ax[3].axhline(J0[0], ls="--", color="tab:blue", alpha=.5, label=r"IC1: $J_T(u_0)$")
+    ax[3].axhline(J0[3], ls="--", color="tab:red", alpha=.5, label=r"IC4: $J_T(u_0)$")
     ax[3].set_title("Cost $J_T$ of the intermediate policies")
-    ax[3].set_xlabel("iteration"); ax[3].set_ylabel("$J_T$"); ax[3].legend(); ax[3].grid(alpha=.3)
+    ax[3].set_xlabel("iteration"); ax[3].set_ylabel("$J_T$")
+    ax[3].legend(fontsize=9); ax[3].grid(alpha=.3)
     fig.tight_layout(); fig.savefig(f"{OUT}/convergence.png", dpi=140); plt.close()
     print("J_T per iteration (IC1):", np.round(Jit[0], 2))
 
