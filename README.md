@@ -6,7 +6,7 @@ programming (ADP), with real-time implementation on the Raspberry Pi Pico.
 
 | | |
 |---|---|
-| **Authors** | Roee Zehavi (209146216), Etay Baron (209438910) |
+| **Authors** | Roee Zehavi, Etay Baron |
 | **Report** | [`Final_Project_Report.pdf`](Final_Project_Report.pdf) (35 pp., English) |
 | **Hardware** | Raspberry Pi Pico (RP2040) @ 200 MHz, MicroPython v1.24.0 + ulab 6.12 |
 
